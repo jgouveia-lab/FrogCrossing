@@ -8,14 +8,14 @@
   </head>
   <body>
     <!-- Splash Screen CHANGE HERE TO SEE THE BOARD-->
-    <section id="splash-screen" class="screen">
+    <section id="splash-screen" class="screen is-active">
       <h1>Welcome to Frog Crossing</h1>
       <p>Reach the top without getting hit.</p>
       <button id="start-btn">Start Game</button>
     </section>
 
     <!-- Game Screen -->
-    <section id="game-screen" class="is-screen">
+    <section id="game-screen" class="screen">
       <div id="stats-bar">
         <span id="lives">Lives: 3</span>
         <span id="crossings">Crossings: 0</span>
@@ -23,20 +23,12 @@
       </div>
       <div id="board">
         <div class="lane goal"></div>
-        <div class="lane road">
-          <div class="lane road"><div class="car"></div></div>
-        </div>
+        <div class="lane road"><div class="car"></div></div>
         <div class="lane road"></div>
-        <div class="lane road">
-          <div class="lane road"><div class="car"></div></div>
-        </div>
+        <div class="lane road"><div class="car"></div></div>
         <div class="lane road"></div>
         <div class="lane road"></div>
-        <div class="lane start">
-          <div class="lane start">
-            <div id="frog"></div>
-          </div>
-        </div>
+        <div class="lane start"><div id="frog"></div></div>
       </div>
     </section>
     <!-- GAME OVER SCREEN -->

@@ -44,10 +44,49 @@ body {
 }
 
 #stats-bar {
-  width: 420px; 
+  width: 420px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 8px;
   font-size: 16px;
+}
+
+/* Splash and gameover share the same look: centered text block, a little
+   breathing room between title/paragraph/button, and a clear call-to-action
+   button. */
+#splash-screen,
+#gameover-screen {
+  text-align: center;
+  color: #f0f0f0;
+  max-width: 360px;
+}
+
+#splash-screen h1,
+#gameover-screen h2 {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+#splash-screen p,
+#gameover-screen p {
+  font-size: 16px;
+  color: #ccc;
+  margin-bottom: 20px;
+}
+
+#start-btn,
+#play-again-btn {
+  font-size: 18px;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  background: #4caf50;
+  color: #fff;
+  cursor: pointer;
+}
+
+#start-btn:hover,
+#play-again-btn:hover {
+  background: #43a047;
 }
