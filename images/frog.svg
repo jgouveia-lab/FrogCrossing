@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 130">
+  <!-- body -->
+  <path d="M20,90
+           Q5,90 5,65
+           Q5,30 40,15
+           Q75,0 110,15
+           Q145,30 145,65
+           Q145,90 130,90
+           Q135,110 120,118
+           Q100,128 75,118
+           Q50,128 30,118
+           Q15,110 20,90
+           Z"
+        fill="#4caf50" />
+
+  <!-- left eye -->
+  <circle cx="48" cy="42" r="26" fill="#ffffff" />
+  <circle cx="48" cy="46" r="13" fill="#1a1a1a" />
+
+  <!-- right eye -->
+  <circle cx="102" cy="42" r="26" fill="#ffffff" />
+  <circle cx="102" cy="46" r="13" fill="#1a1a1a" />
+</svg>

@@ -4,40 +4,100 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Frog Crossing Game</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="images/frog.svg" type="image/svg+xml" />
   </head>
   <body>
-    <!-- Splash Screen CHANGE HERE TO SEE THE BOARD-->
+
+    <!-- =====================================================
+         SPLASH SCREEN
+         First thing the player sees. Clicking Start runs
+         startGame() in main.js.
+    ===================================================== -->
     <section id="splash-screen" class="screen is-active">
-      <h1>Welcome to Frog Crossing</h1>
-      <p>Reach the top without getting hit.</p>
+      <h1><span class="frog-emoji">🐸</span> Frog Crossing</h1>
+      <p>Cross the road without getting hit!</p>
+      <p id="splash-best"></p>
+
+      <div id="rules">
+        <h2>How to Play</h2>
+        <ul>
+          <li>🎯 Reach the <strong>green zone</strong> at the top to score</li>
+          <li>❤️ You start with <strong>3 lives</strong> — avoid the cars!</li>
+          <li>⭐ Cross <strong>5 times</strong> to reach the next level</li>
+          <li>🚀 Every level the <strong>cars get faster</strong></li>
+          <li>➕ You earn <strong>+1 life</strong> on every level up</li>
+        </ul>
+      </div>
+
       <button id="start-btn">Start Game</button>
+      <p class="hint">Use Arrow Keys or the D-pad below to move</p>
     </section>
 
-    <!-- Game Screen -->
+    <!-- =====================================================
+         GAME SCREEN
+         Three-column layout: left panel | game | right panel
+         JS fills in the frog and cars inside #board.
+    ===================================================== -->
     <section id="game-screen" class="screen">
+
+      <!-- Stats bar: lives remaining, successful crossings, restart -->
       <div id="stats-bar">
-        <span id="lives">Lives: 3</span>
-        <span id="crossings">Crossings: 0</span>
-        <button id="restart-btn">⟳</button>
+        <!-- Top row: lives, level and buttons -->
+        <div class="stats-row">
+          <span id="lives">❤️ Lives: 3</span>
+          <span id="level">Level: 1</span>
+          <div>
+            <button id="mute-btn"    title="Mute / Unmute">🔊</button>
+            <button id="restart-btn" title="Restart">⟳</button>
+          </div>
+        </div>
+        <!-- Bottom row: crossings progress + all-time best -->
+        <div class="stats-row stats-progress">
+          <span id="crossings">⭐ Crossings: 0 / 5 — reach 5 to win!</span>
+          <span id="highscore">🏆 Best: 0</span>
+        </div>
       </div>
+
+      <!-- The game board — JS builds the frog and cars inside here -->
       <div id="board">
-        <div class="lane goal"></div>
-        <div class="lane road"><div class="car"></div></div>
-        <div class="lane road"></div>
-        <div class="lane road"><div class="car"></div></div>
-        <div class="lane road"></div>
-        <div class="lane road"></div>
-        <div class="lane start"><div id="frog"></div></div>
+        <!-- Lane divs are created by JS in buildBoard().
+             They are just the coloured background rows. -->
       </div>
+
+      <!-- On-screen d-pad for touch / mouse players -->
+      <div id="dpad">
+        <div class="dpad-row">
+          <button class="dpad-btn" id="btn-up">▲</button>
+        </div>
+        <div class="dpad-row">
+          <button class="dpad-btn" id="btn-left">◀</button>
+          <button class="dpad-btn" id="btn-down">▼</button>
+          <button class="dpad-btn" id="btn-right">▶</button>
+        </div>
+      </div>
+
     </section>
-    <!-- GAME OVER SCREEN -->
+
+    <!-- =====================================================
+         GAME OVER SCREEN
+         Shown when the player runs out of lives.
+         result-title and result-detail are set by JS.
+    ===================================================== -->
     <section id="gameover-screen" class="screen">
       <h2 id="result-title">Game Over</h2>
       <p id="result-detail">You crossed 0 times.</p>
-      <button id="play-again-btn">Play again</button>
+      <button id="play-again-btn">Play Again</button>
     </section>
 
-    <script src="game.js"></script>
+    <!-- Scripts must be loaded in dependency order:
+         car.js and frog.js first (they define classes),
+         then game-manager.js (uses Car and Frog),
+         then main.js last (creates the Game and wires up buttons) -->
+    <script src="js/car.js"></script>
+    <script src="js/frog.js"></script>
+    <script src="js/audio-manager.js"></script>
+    <script src="js/game-manager.js"></script>
+    <script src="js/main.js"></script>
   </body>
 </html>

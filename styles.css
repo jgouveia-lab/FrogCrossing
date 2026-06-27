@@ -1,0 +1,403 @@
+/* ------------------------------------------------------------------
+   SCREEN SWITCHER
+   By default every .screen is hidden. The one that also has
+   "is-active" becomes visible. JS toggles this class to move
+   between splash → game → gameover.
+------------------------------------------------------------------ */
+.screen { display: none; }
+.screen.is-active { display: block; }
+
+
+/* ------------------------------------------------------------------
+   GLOBAL RESET & BODY
+   Centers whichever screen is active in the middle of the viewport.
+------------------------------------------------------------------ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #1a1a2e; /* dark navy background */
+}
+
+/* ------------------------------------------------------------------
+   STATS BAR (lives + crossings + restart button)
+   Sits above the board and matches its 420px width.
+------------------------------------------------------------------ */
+#stats-bar {
+  width: 420px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 10px;
+  color: #f0f0f0;
+  background: #111;
+  border: 2px solid #444;
+  border-bottom: none;
+}
+
+/* Each row inside the stats bar */
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+/* Bottom row: smaller, dimmer, separated by a line */
+.stats-progress {
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid #333;
+}
+
+#restart-btn,
+#mute-btn {
+  font-size: 16px;
+  background: #555;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  margin-left: 4px;
+}
+
+#restart-btn:hover,
+#mute-btn:hover { background: #777; }
+
+/* ------------------------------------------------------------------
+   BOARD
+   A 420×420 px grid of 7 rows × 7 columns (each cell = 60px).
+   position: relative lets us place the frog and cars with
+   position: absolute inside it.
+   overflow: hidden clips cars as they wrap around the edges.
+------------------------------------------------------------------ */
+#board {
+  width: 420px;
+  height: 420px;        /* 7 rows × 60px each */
+  position: relative;   /* anchor point for absolute children */
+  overflow: hidden;     /* hide cars going off the edges */
+  display: grid;
+  grid-template-rows: repeat(7, 60px);
+  border: 2px solid #444;
+}
+
+/* ------------------------------------------------------------------
+   LANES
+   Each lane is one row of the grid. Colors tell the player
+   what kind of terrain they are crossing.
+------------------------------------------------------------------ */
+.lane           { height: 60px; border-bottom: 1px solid #333; }
+.lane.goal      { background: #2e7d32; } /* green = safe zone / lily pad */
+.lane.road      { background: #37474f; } /* dark grey = dangerous road */
+.lane.start     { background: #5d4037; } /* brown = safe starting bank */
+
+/* Dashed lane divider sits at the BOTTOM edge of each road lane,
+   between lanes rather than cutting through the middle of the car */
+.lane.road {
+  border-bottom: 3px dashed #555;
+}
+
+/* ------------------------------------------------------------------
+   FROG
+   Absolutely positioned so JS can move it freely by changing
+   its `left` and `top` style values.
+------------------------------------------------------------------ */
+#frog {
+  width: 50px;
+  height: 50px;
+  position: absolute;   /* moved by JS — see renderFrog() in game.js */
+  background: url('images/frog.svg') no-repeat center / contain;
+  transition: top 0.1s, left 0.1s; /* smooth slide — 0.1s feels responsive but not jerky */
+  z-index: 10;          /* frog sits on top of everything */
+}
+
+/* ------------------------------------------------------------------
+   CARS
+   Also absolutely positioned. JS creates these elements,
+   sets their initial position, and moves them every tick.
+   .car-right = moving right (red)
+   .car-left  = moving left  (orange/yellow)
+------------------------------------------------------------------ */
+.car {
+  position: absolute;   /* moved by JS — see renderCars() in game.js */
+  height: 40px;
+  border-radius: 6px;
+  z-index: 5;
+}
+
+.car-right {
+  background: #e53935; /* red — going right */
+}
+
+.car-left {
+  background: #f57c00; /* orange — going left */
+}
+
+/* ------------------------------------------------------------------
+   CROSSING CELEBRATION ANIMATION
+   When the frog reaches the goal, JS adds "flash" to the goal lane
+   and spawns .particle elements that float upward and fade out.
+------------------------------------------------------------------ */
+
+/* Goal lane flashes bright green for 0.6s */
+@keyframes goalFlash {
+  0%   { background: #2e7d32; }
+  30%  { background: #b9f6ca; }
+  65%  { background: #4caf50; }
+  100% { background: #2e7d32; }
+}
+
+.lane.goal.flash {
+  animation: goalFlash 0.6s ease-out;
+}
+
+/* Each particle floats upward and fades out */
+@keyframes particleFloat {
+  0%   { transform: translateY(0)      scale(1);   opacity: 1; }
+  60%  { transform: translateY(-60px)  scale(1.4); opacity: 1; }
+  100% { transform: translateY(-100px) scale(1.2); opacity: 0; }
+}
+
+.particle {
+  position: absolute;
+  font-size: 22px;
+  pointer-events: none;       /* clicks pass through particles */
+  animation: particleFloat 1.8s ease-out forwards;
+  z-index: 20;                /* float above everything */
+}
+
+/* ------------------------------------------------------------------
+   LEVEL UP / EXTRA LIFE ANIMATION
+   JS creates a "+1 ❤️" popup at the lives display position.
+   It floats upward and fades out over 1.2s, then JS removes it.
+------------------------------------------------------------------ */
+@keyframes lifeGain {
+  0%   { transform: translateY(0)     scale(1);   opacity: 1; }
+  60%  { transform: translateY(-30px) scale(1.3); opacity: 1; }
+  100% { transform: translateY(-55px) scale(1);   opacity: 0; }
+}
+
+.life-gain-popup {
+  position: fixed;
+  font-size: 22px;
+  font-weight: bold;
+  color: #ff4d6d;
+  pointer-events: none;
+  animation: lifeGain 1.2s ease-out forwards;
+  z-index: 100;
+}
+
+/* Big "LEVEL 2!" banner that appears in the centre of the board */
+@keyframes levelBanner {
+  0%   { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+  20%  { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  70%  { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1);   opacity: 0; }
+}
+
+.level-up-banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: #ffd600;
+  font-size: 28px;
+  font-weight: bold;
+  padding: 12px 28px;
+  border-radius: 10px;
+  border: 2px solid #ffd600;
+  pointer-events: none;
+  white-space: nowrap;
+  animation: levelBanner 1.6s ease-out forwards;
+  z-index: 50;
+}
+
+/* ------------------------------------------------------------------
+   SCREEN SHAKE ANIMATION
+   When the frog gets hit, JS adds "shake" to #board.
+   The board rapidly jerks left/right, then returns to normal.
+   JS removes the class after 400ms so it can be re-triggered.
+------------------------------------------------------------------ */
+@keyframes boardShake {
+  0%   { transform: translateX(0);    }
+  15%  { transform: translateX(-8px); }
+  30%  { transform: translateX(8px);  }
+  45%  { transform: translateX(-6px); }
+  60%  { transform: translateX(6px);  }
+  75%  { transform: translateX(-3px); }
+  90%  { transform: translateX(3px);  }
+  100% { transform: translateX(0);    }
+}
+
+#board.shake {
+  animation: boardShake 0.4s ease-out;
+}
+
+/* ------------------------------------------------------------------
+   FROG DEATH ANIMATION
+   When the frog gets hit, JS adds the "dead" class for 500ms.
+   The frog flashes red using a CSS keyframe animation.
+   After 500ms JS removes the class and resets the frog position.
+------------------------------------------------------------------ */
+@keyframes flashRed {
+  0%   { filter: brightness(1) sepia(0); }
+  25%  { filter: brightness(2) sepia(1) hue-rotate(-50deg); }
+  50%  { filter: brightness(1) sepia(0); }
+  75%  { filter: brightness(2) sepia(1) hue-rotate(-50deg); }
+  100% { filter: brightness(1) sepia(0); }
+}
+
+#frog.dead {
+  animation: flashRed 0.5s ease-in-out;
+}
+
+/* ------------------------------------------------------------------
+   SPLASH & GAME OVER SCREENS
+   Both use the same centered card layout.
+------------------------------------------------------------------ */
+#splash-screen,
+#gameover-screen {
+  text-align: center;
+  color: #f0f0f0;
+  width: 420px;
+  padding: 20px;
+}
+
+#splash-screen h1,
+#gameover-screen h2 {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+#splash-screen p,
+#gameover-screen p {
+  font-size: 16px;
+  color: #ccc;
+  margin-bottom: 24px;
+}
+
+/* Rules box on splash screen */
+#rules {
+  background: #16213e;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 14px 20px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+#rules h2 {
+  font-size: 15px;
+  color: #ffd600;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#rules ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#rules li {
+  font-size: 14px;
+  color: #ddd;
+  padding: 4px 0;
+  line-height: 1.5;
+}
+
+/* Bouncing frog emoji in the title */
+@keyframes frogBounce {
+  0%,  100% { transform: translateY(0);    }
+  40%        { transform: translateY(-10px); }
+  60%        { transform: translateY(-6px);  }
+}
+
+#splash-screen h1 .frog-emoji {
+  display: inline-block;
+  animation: frogBounce 1.4s ease-in-out infinite;
+}
+
+/* Pulsing glow on the Start button */
+@keyframes buttonPulse {
+  0%,  100% { box-shadow: 0 0 0px  0px rgba(76, 175, 80, 0.5); }
+  50%        { box-shadow: 0 0 18px 6px rgba(76, 175, 80, 0.7); }
+}
+
+#start-btn {
+  animation: buttonPulse 1.8s ease-in-out infinite;
+}
+
+/* Best level badge */
+#splash-best {
+  font-size: 14px;
+  color: #ffd600;
+  margin-bottom: 16px;
+}
+
+/* Keyboard hint on splash screen */
+#splash-screen .hint {
+  font-size: 13px;
+  color: #888;
+  margin-top: 12px;
+}
+
+/* ------------------------------------------------------------------
+   BUTTONS
+   Start, Play Again, and Restart share a green theme.
+------------------------------------------------------------------ */
+#start-btn,
+#play-again-btn {
+  font-size: 18px;
+  padding: 10px 28px;
+  border: none;
+  border-radius: 6px;
+  background: #4caf50;
+  color: #fff;
+  cursor: pointer;
+}
+
+#start-btn:hover,
+#play-again-btn:hover {
+  background: #43a047;
+}
+
+/* ------------------------------------------------------------------
+   MOBILE ON-SCREEN D-PAD
+   Shown below the board so players on touch devices can still play.
+------------------------------------------------------------------ */
+#dpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+#dpad .dpad-row {
+  display: flex;
+  gap: 4px;
+}
+
+.dpad-btn {
+  width: 52px;
+  height: 52px;
+  font-size: 22px;
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.dpad-btn:active { background: #555; }
+
