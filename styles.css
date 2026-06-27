@@ -372,6 +372,25 @@ body {
 }
 
 /* ------------------------------------------------------------------
+   MOBILE SCALING
+   On screens narrower than 460px the 420px game board would be
+   cut off. We use CSS transform to shrink the active screen to fit.
+   The JS in main.js calculates the right scale and stores it in
+   --game-scale so we can use it here without hard-coding a number.
+   transform-origin: top center keeps it pinned to the top.
+------------------------------------------------------------------ */
+@media (max-width: 460px) {
+  body {
+    justify-content: flex-start; /* pin to top so nothing is hidden above */
+    padding-top: 8px;
+  }
+  .screen.is-active {
+    transform: scale(var(--game-scale, 1));
+    transform-origin: top center;
+  }
+}
+
+/* ------------------------------------------------------------------
    MOBILE ON-SCREEN D-PAD
    Shown below the board so players on touch devices can still play.
 ------------------------------------------------------------------ */

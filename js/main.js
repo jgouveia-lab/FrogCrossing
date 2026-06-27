@@ -51,4 +51,17 @@ window.onload = function () {
   btnLeft.addEventListener("click",  function () { ourGame.moveFrog("left");  });
   btnRight.addEventListener("click", function () { ourGame.moveFrog("right"); });
 
+  // ---- Mobile scaling -------------------------------------------
+  // On narrow screens the 420px board would be cut off.
+  // We calculate how much to shrink so it always fits the screen width.
+  // The value is stored as a CSS variable so styles.css can use it.
+  function scaleToFit() {
+    // Leave 16px of breathing room (8px on each side)
+    const scale = Math.min(1, (window.innerWidth - 16) / 460);
+    document.documentElement.style.setProperty("--game-scale", scale);
+  }
+
+  scaleToFit();                                   // run once on load
+  window.addEventListener("resize", scaleToFit); // re-run if screen rotates
+
 };
